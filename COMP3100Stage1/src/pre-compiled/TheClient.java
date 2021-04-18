@@ -1,5 +1,8 @@
 import java.net.*;
 import java.io.*;
+import org.w3c.dom.*;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 
 public class TheClient {
 
@@ -8,6 +11,7 @@ public class TheClient {
 	private Socket socket = null;
 	private BufferedReader in = null;
 	private DataOutputStream out = null;
+	private Server[] servers = new Server[1];
 
 	// Constructor for our client class: we connect the socket to the address 127.0.0.1 and to the port 50000, as
 	// provided by the server, and we initialize the input variable (in) and the output (out)
@@ -69,7 +73,32 @@ public class TheClient {
 		System.out.println(text);
 
 		// Read ds-system.xml, where we can get information about the server
+		File file = new File("ds-system.xml");
+		readFile(file);
+
 		// Send message with REDY
 		// Read the server reply
+	}
+
+	public void readFile(File file) {
+		try {
+			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+			DocumentBuilder builder = factory.newDocumentBuilder();
+			Document systemDocument = builder.parse(file);
+			systemDocument.getDocumentElement().normalize();
+			
+			NodeList serverNodeList = systemDocument.getElementsByTagName("server");
+			servers = new Server[serverNodeList.getLength()];
+			for (int i = 0; i < serverNodeList.getLength(); i++) {
+				Element server = (Element) serverNodeList.item(i);
+				String t = server.getAttribute("type");
+				int c = Integer.parseInt(server.getAttribute("cores"));
+				Server temp = new Server(i, t, c);
+				servers[i] = temp;
+			}
+		} catch (Exception i) {
+			i.printStackTrace();
+		}
+
 	}
 }
