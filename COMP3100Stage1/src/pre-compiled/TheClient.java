@@ -12,6 +12,8 @@ public class TheClient {
 	private BufferedReader in = null;
 	private DataOutputStream out = null;
 	private Server[] servers = new Server[1];
+	private int largestServerIndex = 0;
+	private String inputString;
 
 	// Constructor for our client class: we connect the socket to the address 127.0.0.1 and to the port 50000, as
 	// provided by the server, and we initialize the input variable (in) and the output (out)
@@ -38,50 +40,41 @@ public class TheClient {
 
 	public void start() {
 		// Start by sending HELO to the server
-		try {
-			out.write(("HELO\n").getBytes());
-			out.flush();
-		} catch (IOException i) {
-			System.out.println("ERR: " + i);
-		}
+		write("HELO");
+        //System.out.println("Sent HELLO");
 
 		// Read the server reply
-		String text = "";
-		try {
-            text = in.readLine();
-			// System.out.print("RCVD: " + text);
-		} catch (IOException i) {
-			System.out.println("ERR: " + i);
-		}
-		System.out.println(text);
+		inputString = read();
+        //System.out.println("Received " + inputString);
 
 		// Send message with AUTH and the client's username
-		try {
-			out.write(("AUTH" + System.getProperty("user.name") + "\n").getBytes());
-			out.flush();
-		} catch (IOException i) {
-			System.out.println("ERR: " + i);
-		}
+		write("AUTH " + System.getProperty("user.name"));
+        //System.out.println("Sent Auth " + System.getProperty("user.name"));
 
 		// Read the server reply
-		try {
-            text = in.readLine();
-			// System.out.print("RCVD: " + text);
-		} catch (IOException i) {
-			System.out.println("ERR: " + i);
-		}
-		System.out.println(text);
+		inputString = read();
+        //System.out.println("Received " + inputString);
 
 		// Read ds-system.xml, where we can get information about the server
 		File file = new File("ds-system.xml");
 		readFile(file);
 
 		// Send message with REDY
+		write("REDY");
+		//System.out.println("Sent REDY");
+
 		// Read the server reply
+		inputString = read();
+        //System.out.println("Received " + inputString);
+
 	}
+	//This method parses through the XML file found at the path stated in the start() method. 
+	//It iterates through the file looks for attributes found in the XML file.
+	// It then stores those values in an array
 
 	public void readFile(File file) {
 		try {
+			
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder builder = factory.newDocumentBuilder();
 			Document systemDocument = builder.parse(file);
@@ -96,9 +89,44 @@ public class TheClient {
 				Server temp = new Server(i, t, c);
 				servers[i] = temp;
 			}
+			largestServerIndex = findLargestServer();
 		} catch (Exception i) {
 			i.printStackTrace();
 		}
 
+	}
+
+	// returns the index of the largest server(CPU cores) in the array 
+	// created by the readFile() method
+	public int findLargestServer() {
+		int largestServer = servers[0].id;
+		for (int i = 0; i < servers.length; i++) {
+			if (servers[i].cores > servers[largestServer].cores) {
+				largestServer = servers[i].id;
+			}
+		}
+		return largestServer;
+	}
+
+	public void write(String text) {
+		try {
+			out.write((text + "\n").getBytes());
+			// System.out.print("SENT: " + text);
+			out.flush();
+		} catch (IOException i) {
+			System.out.println("ERR: " + i);
+		}
+	}
+
+	public String read() {
+		String text = "";
+		try {
+            text = in.readLine();
+			// System.out.print("RCVD: " + text);
+			inputString = text;
+		} catch (IOException i) {
+			System.out.println("ERR: " + i);
+		}
+		return text;
 	}
 }
