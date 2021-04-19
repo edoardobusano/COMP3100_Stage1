@@ -13,7 +13,7 @@ public class TheClient {
 	private DataOutputStream out = null;
 	private Server[] servers = new Server[1];
 	private int largestServerIndex = 0;
-	private String inputString;
+	private String inputString = "";
 
 	// Constructor for our client class: we connect the socket to the address 127.0.0.1 and to the port 50000, as
 	// provided by the server, and we initialize the input variable (in) and the output (out)
@@ -69,6 +69,7 @@ public class TheClient {
 
 		// allToLargest() algorithm starts here, where the client schedules all the jobs following the design
 		// explained in the assignment document
+		allToLargest();
 
 		// After allToLargest() is done with scheduling, we start the quitting procedure
 		try {
@@ -87,6 +88,51 @@ public class TheClient {
 			System.out.println("ERR: " + i);
 		}
 	}
+
+	// allToLargest deals with the communication between server and client after the client sent the first REDY, and
+	// the server sent the first reply. If the reply is NONE, the method will just quit and the connection will be closed,
+	// while, if the client receives other commands, the algorithm will run as expected. It follows the workflow shown in
+	// the ds-server pdf file provided, so the algorithm loops until it receives a NONE as a reply from the server. 
+	// In case it does not receive a JOBN reply, the client will write REDY, so that the command can be skipped.
+	// When the server sends a JOBN message, the message is split and data about the job is gathered.
+	// The server type needed in the SCHD command is found thanks to the readFile method and the findLargestServer method.
+	public void allToLargest (){
+        if (inputString.equals("NONE")) {
+			quit();
+		} else {
+			while (!completed) {
+				if (inputString.equals("OK")) {
+					write("REDY");
+                    //System.out.println("Sent REDY");
+					inputString = read();
+                    //System.out.println("Received " + inputString);
+				}
+                String [] splitMessage = inputString.split("\\s+");
+                String firstWord = splitMessage[0];
+                while (firstWord.equals("JCPL") || firstWord.equals("RESF") || firstWord.equals("RESR")) {
+                    write("REDY");
+                    //System.out.println("Sent REDY");
+					inputString = read();
+                    //System.out.println("Received " + inputString);
+
+                    splitMessage = inputString.split("\\s+");
+                    firstWord = splitMessage[0];
+                }
+				if (firstWord.equals("NONE")) {
+					completed = true;
+					break;
+				}
+
+				String[] jobSections = inputString.split("\\s+"); 
+				String num = jobSections[2];
+				String scheduleMessage = "SCHD " + num + " " + servers[largestServerIndex].type + " " + "0";
+				write(scheduleMessage);
+                //System.out.println("JOB SENT: SCHD " + count + " " + servers[largestServer].type + " " + "0");
+                inputString = read();
+                //System.out.println("Received " + inputString);
+			}
+		}
+    }
 
 	// This method parses through the XML file found at the path stated in the start() method. 
 	// It iterates through the file looks for attributes found in the XML file.
