@@ -14,6 +14,7 @@ public class TheClient {
 	private Server[] servers = new Server[1];
 	private int largestServerIndex = 0;
 	private String inputString = "";
+	private Boolean completed = false;
 
 	// Constructor for our client class: we connect the socket to the address 127.0.0.1 and to the port 50000, as
 	// provided by the server, and we initialize the input variable (in) and the output (out)
@@ -72,21 +73,7 @@ public class TheClient {
 		allToLargest();
 
 		// After allToLargest() is done with scheduling, we start the quitting procedure
-		try {
-			write("QUIT");
-            //System.out.println("Sent QUIT");
-
-			// If the reply is QUIT, then we can close input, output and the socket
-			inputString = read();
-            //System.out.println("Received" + inputString);
-			if (inputString.equals("QUIT")) {
-				in.close();
-				out.close();
-				socket.close();
-			}
-		} catch (IOException i) {
-			System.out.println("ERR: " + i);
-		}
+		quit();
 	}
 
 	// allToLargest deals with the communication between server and client after the client sent the first REDY, and
@@ -194,4 +181,21 @@ public class TheClient {
 		}
 		return text;
 	}
+
+	public void quit() {
+		try {
+			write("QUIT");
+            //System.out.println("Sent QUIT");
+			inputString = read();
+            //System.out.println("Received" + inputString);
+			if (inputString.equals("QUIT")) {
+				in.close();
+				out.close();
+				socket.close();
+			}
+		} catch (IOException i) {
+			System.out.println("ERR: " + i);
+		}
+	}
+
 }
