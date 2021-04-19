@@ -67,11 +67,30 @@ public class TheClient {
 		inputString = read();
         //System.out.println("Received " + inputString);
 
-	}
-	//This method parses through the XML file found at the path stated in the start() method. 
-	//It iterates through the file looks for attributes found in the XML file.
-	// It then stores those values in an array
+		// allToLargest() algorithm starts here, where the client schedules all the jobs following the design
+		// explained in the assignment document
 
+		// After allToLargest() is done with scheduling, we start the quitting procedure
+		try {
+			write("QUIT");
+            //System.out.println("Sent QUIT");
+
+			// If the reply is QUIT, then we can close input, output and the socket
+			inputString = read();
+            //System.out.println("Received" + inputString);
+			if (inputString.equals("QUIT")) {
+				in.close();
+				out.close();
+				socket.close();
+			}
+		} catch (IOException i) {
+			System.out.println("ERR: " + i);
+		}
+	}
+
+	// This method parses through the XML file found at the path stated in the start() method. 
+	// It iterates through the file looks for attributes found in the XML file.
+	// It then stores those values in an array
 	public void readFile(File file) {
 		try {
 			
@@ -96,7 +115,7 @@ public class TheClient {
 
 	}
 
-	// returns the index of the largest server(CPU cores) in the array 
+	// Returns the index of the largest server(CPU cores) in the array 
 	// created by the readFile() method
 	public int findLargestServer() {
 		int largestServer = servers[0].id;
