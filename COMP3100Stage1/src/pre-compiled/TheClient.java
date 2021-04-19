@@ -13,7 +13,7 @@ public class TheClient {
 	private DataOutputStream out = null;
 	private Server[] servers = new Server[1];
 	private int largestServerIndex = 0;
-	private String inputString = "";
+	private String inputString;
 	private Boolean completed = false;
 
 	// Constructor for our client class: we connect the socket to the address 127.0.0.1 and to the port 50000, as
@@ -40,39 +40,21 @@ public class TheClient {
 	}
 
 	public void start() {
-		// Start by sending HELO to the server
 		write("HELO");
         //System.out.println("Sent HELLO");
-
-		// Read the server reply
 		inputString = read();
         //System.out.println("Received " + inputString);
-
-		// Send message with AUTH and the client's username
 		write("AUTH " + System.getProperty("user.name"));
         //System.out.println("Sent Auth " + System.getProperty("user.name"));
-
-		// Read the server reply
 		inputString = read();
         //System.out.println("Received " + inputString);
-
-		// Read ds-system.xml, where we can get information about the server
 		File file = new File("ds-system.xml");
 		readFile(file);
-
-		// Send message with REDY
 		write("REDY");
-		//System.out.println("Sent REDY");
-
-		// Read the server reply
+        //System.out.println("Sent REDY");
 		inputString = read();
         //System.out.println("Received " + inputString);
-
-		// allToLargest() algorithm starts here, where the client schedules all the jobs following the design
-		// explained in the assignment document
-		allToLargest();
-
-		// After allToLargest() is done with scheduling, we start the quitting procedure
+        allToLargest();
 		quit();
 	}
 
@@ -137,7 +119,7 @@ public class TheClient {
 			for (int i = 0; i < serverNodeList.getLength(); i++) {
 				Element server = (Element) serverNodeList.item(i);
 				String t = server.getAttribute("type");
-				int c = Integer.parseInt(server.getAttribute("cores"));
+				int c = Integer.parseInt(server.getAttribute("coreCount"));
 				Server temp = new Server(i, t, c);
 				servers[i] = temp;
 			}
